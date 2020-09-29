@@ -113,6 +113,9 @@ function gen_rnd_card_fixed(card, l) {
     }
 
     shuffle(q)
+    if (q.length < 9) {
+        console.log(q)
+    }
     for (let i = 0; i < 3; ++i) {
         for (let j = 0; j < 3; ++j) {
             card[i][j] = q[i*3+j];
@@ -149,7 +152,8 @@ function bingo(card, li) {
 }
 
 function display_prop(l, lots) {
-    display_node = document.getElementById("display")
+    const display_node = document.getElementById("display")
+    display_node.innerHTML = ''
     for (let i = 0; i <= persons; ++i) {
         if (l[i] == 0) {
             continue
@@ -184,12 +188,22 @@ function replace(f, l1, l0) {
     // console.log(f)
 }
 
+function set_progress(i, n) {
+    // const root = document.getElementById("progress")
+    // if (i < n) {
+    //     root.innerText = `计算中 ${i}/${n}`
+    // } else {
+    //     root.innerText = `完成 ${n}/${n}`
+    // }
+}
+
 function random_adjust(cards, runs, lots) {
     const cntf = []
     for (let i = 0; i <= persons; ++i) {
         cntf.push(0)
     }
     for (let iter = 0; iter < 1000; ++iter) {
+        set_progress(iter+1, 1000)
         let mi = 100, ma = 0
         let l0 = [], l1 = []
         for (let i = 0; i < cntf.length; i++) {
@@ -257,6 +271,7 @@ function random_adjust(cards, runs, lots) {
         // }
         // console.log(a)
         if (mi > 0) {
+            set_progress(1000, 1000)
             break
         }
 
@@ -346,6 +361,7 @@ function cal(lots, expected, runs) {
 function display_cards(cards) {
     const row = 7, col = 5
     const root = document.getElementById("cards")
+    root.innerHTML = ''
     let cnt = 0
     let line = document.createElement("div")
     let page = document.createElement("div")
@@ -398,6 +414,7 @@ function dfs(i, n) {
 }
 
 function do_submit(form) {
+    set_progress(0, 1000)
     const button = document.getElementById("submit")
     // button.disabled = "true"
 
@@ -445,6 +462,7 @@ function do_submit(form) {
         <input type="submit" id="submit">
     </form>
     <div id="display"></div>
+    <div id="progress"></div>
     <div id="cards"></div>
 </body>  
 </html>  
