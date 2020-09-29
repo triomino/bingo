@@ -28,6 +28,8 @@ table {
 <script>
 let bound = 9
 let tuple_cnt = []
+let tuples = []
+let persons = 0
 function random(upbound) {
     // random int in [1, upbound]
     return Math.floor(Math.random() * upbound) + 1;
@@ -57,63 +59,6 @@ function random_shuffle(arr) {
 }
 
 function gen_rnd_card(card) {
-    // let mi = 100, l0 = []
-    // for (let i = 1; i <= bound; ++i) {
-    //     for (let j = i+1; j <= bound; ++j) {
-    //         for (let k = j+1; k <= bound; ++k) {
-    //             if (mi > tuple_cnt[i][j][k]) {
-    //                 mi = tuple_cnt[i][j][k] 
-    //                 l0 = random_shuffle([i, j, k])
-    //             }
-    //         }
-    //     }
-    // }
-    // mi = 100
-    // let l1 = []
-    // for (let i = 1; i <= bound; ++i) {
-    //     if (!(i in l0)) {
-    //         for (let j = i+1; j <= bound; ++j) {
-    //             if (!(j in l0)) {
-    //                 for (let k = j+1; k <= bound; ++k) {
-    //                     if (!(k in l0)) {
-    //                         if (mi > tuple_cnt[i][j][k]) {
-    //                             mi = tuple_cnt[i][j][k] 
-    //                             l1 = random_shuffle([i, j, k])
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-    // mi = 100
-    // let l2 = []
-    // for (let i = 1; i <= bound; ++i) {
-    //     if (!(i in l0) && !(i in l1)) {
-    //         for (let j = i+1; j <= bound; ++j) {
-    //             if (!(j in l0) && !(j in l1)) {
-    //                 for (let k = j+1; k <= bound; ++k) {
-    //                     if (!(k in l0) && !(j in l1)) {
-    //                         if (mi > tuple_cnt[i][j][k]) {
-    //                             mi = tuple_cnt[i][j][k] 
-    //                             l2 = random_shuffle([i, j, k])
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-    // for (let i = 0; i < 3; ++i) {
-    //     card[0][i] = l0[i]
-    // }
-    // for (let i = 0; i < 3; ++i) {
-    //     card[1][i] = l1[i]
-    // }
-    // for (let i = 0; i < 3; ++i) {
-    //     card[2][i] = l2[i]
-    // }
-
     // regular random
     const f = []
     for (let i = 0; i < bound; ++i) {
@@ -145,17 +90,14 @@ function gen_rnd_card_fixed(card, l) {
     // regular random
     const f = []
     for (let i = 0; i < bound; ++i) {
-        if (i in l) {
+        if (l.includes(i)) {
             f.push(1)
         } else {
             f.push(0)
         }
     }
-    const q = []
-    for (let i = 0; i < 3; ++i) {
-        q.push(l[i])
-    }
-    for (let i = 3; i < 9; ++i) {
+    const q = l.slice(0)
+    for (let i = l.length; i < 9; ++i) {
         const j = random(bound - i)
         let cnt = 0;
         for (let k = 0; k < bound; ++k) {
@@ -169,6 +111,8 @@ function gen_rnd_card_fixed(card, l) {
             }
         }
     }
+
+    shuffle(q)
     for (let i = 0; i < 3; ++i) {
         for (let j = 0; j < 3; ++j) {
             card[i][j] = q[i*3+j];
@@ -177,12 +121,12 @@ function gen_rnd_card_fixed(card, l) {
 }
 
 
-function bingo(card, a, b, c) {
+function bingo(card, li) {
     const f = []
     for (let i = 0; i < 3; ++i) {
         const l = []
         for (let j = 0; j < 3; ++j) {
-            if (card[i][j] == a || card[i][j] == b || card[i][j] == c) {
+            if (li.includes(card[i][j])) {
                 l.push(1)
             } else {
                 l.push(0)
@@ -204,12 +148,15 @@ function bingo(card, a, b, c) {
     return l0 | l1 | l2 | x0 | x1 | r0 | r1 | r2
 }
 
-function display_prop(l, tot) {
+function display_prop(l, lots) {
     display_node = document.getElementById("display")
-    for (let i = 0; i < 10; ++i) {
-        const prop = Math.floor(1.0 * l[i] / tot * 100) / 100.0;
+    for (let i = 0; i <= persons; ++i) {
+        if (l[i] == 0) {
+            continue
+        }
+        const prop = Math.floor(1.0 * l[i] / tuples.length * 100) / 100.0;
         const ele = document.createElement("div")
-        ele.innerText = `随机抽三个数，恰好有 ${i} 个人中奖的概率是 ${prop}`
+        ele.innerText = `随机抽 ${lots} 个数，恰好有 ${i} 个人中奖的概率是 ${prop} \t (${l[i]}/${tuples.length})`
         display_node.appendChild(ele)
     }
 }
@@ -238,36 +185,58 @@ function replace(f, l1, l0) {
 }
 
 function random_adjust(cards, runs, lots) {
+    const cntf = []
+    for (let i = 0; i <= persons; ++i) {
+        cntf.push(0)
+    }
     for (let iter = 0; iter < 1000; ++iter) {
-        const cntf = []
         let mi = 100, ma = 0
-        let l0 = [], l1 = [], tot = 0
-        for (let i = 0; i < 10; ++i) {
-            cntf.push(0)
+        let l0 = [], l1 = []
+        for (let i = 0; i < cntf.length; i++) {
+            cntf[i] = 0
         }
-        for (let i = 1; i <= bound; ++i) {
-            for (let j = i+1; j <= bound; ++j) {
-                for (let k = j+1; k <= bound; ++k) {
-                    tot++
-                    let cnt = 0
-                    for (const card of cards) {
-                        if (bingo(card, i, j, k)) {
-                            cnt++
-                        }
-                    }
-                    // display_res(i, j, k, cnt)
-                    if (mi > cnt) {
-                        mi = cnt
-                        l0 = [i, j, k]
-                    }
-                    if (ma < cnt) {
-                        ma = cnt
-                        l1 = [i, j, k]
-                    }
-                    if (cnt < 10) cntf[cnt]++
+        // for (let i = 1; i <= bound; ++i) {
+        //     for (let j = i+1; j <= bound; ++j) {
+        //         for (let k = j+1; k <= bound; ++k) {
+        //             tot++
+        //             let cnt = 0
+        //             for (const card of cards) {
+        //                 if (bingo(card, [i, j, k])) {
+        //                     cnt++
+        //                 }
+        //             }
+        //             // display_res(i, j, k, cnt)
+        //             if (mi > cnt) {
+        //                 mi = cnt
+        //                 l0 = [i, j, k]
+        //             }
+        //             if (ma < cnt) {
+        //                 ma = cnt
+        //                 l1 = [i, j, k]
+        //             }
+        //             if (cnt < 20) cntf[cnt]++
+        //         }
+        //     }
+        // }
+        
+        for (const tuple of tuples) {
+            let cnt = 0
+            for (const card of cards) {
+                if (bingo(card, tuple)) {
+                    cnt++
                 }
             }
+            if (mi > cnt) {
+                mi = cnt
+                l0 = tuple
+            }
+            if (ma < cnt) {
+                ma = cnt
+                l1 = tuple
+            }
+            cntf[cnt]++
         }
+
         // console.log(l0, mi)
         // console.log(l1, ma)
         // console.log(cntf)
@@ -288,17 +257,17 @@ function random_adjust(cards, runs, lots) {
         // }
         // console.log(a)
         if (mi > 0) {
-            display_prop(cntf, tot)
             break
         }
 
         for (let i = 0; i < cards.length; ++i) {
-            if (bingo(cards[i], l1[0], l1[1], l1[2])) {
+            if (bingo(cards[i], l1)) {
                 replace(cards[i], l1, l0)
                 break
             }
         }
-    } 
+    }
+    display_prop(cntf, lots)
 }
 
 function sorted(a, b, c) {
@@ -354,20 +323,21 @@ function add(f) {
     }
 }
 
-function cal(persons, lots, expected, runs) {
+function cal(lots, expected, runs) {
     let l = 0, r = 30;
     const cards = [];
     for (let i = 0; i < persons; ++i) {
         cards.push([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
     }
     for (let i = 0; i < persons; ++i) {
-        for (let j = 0; j < 1; ++j) {
-            gen_rnd_card(cards[i])
-            if (canadd(cards[i])) {
-                add(cards[i])
-                break;
-            }
-        }
+        // for (let j = 0; j < 1; ++j) {
+            // gen_rnd_card(cards[i])
+            // if (canadd(cards[i])) {
+            //     add(cards[i])
+            //     break;
+            // }
+        // }
+        gen_rnd_card(cards[i])
     }
     random_adjust(cards, runs, lots)
     return cards;
@@ -411,12 +381,29 @@ function display_cards(cards) {
     }
 }
 
+let a = []
+function dfs(i, n) {
+    if (i == n) {
+        tuples.push(a.slice(0))
+    } else {
+        let s = 0
+        if (i > 0) {
+            s = a[i-1]
+        }
+        for (let j = s+1; j <= bound; ++j) {
+            a[i] = j;
+            dfs(i+1, n)
+        }
+    }
+}
+
 function do_submit(form) {
     const button = document.getElementById("submit")
     // button.disabled = "true"
 
-    const persons = form.persons.value
-    const lots = 3
+    persons = form.persons.value
+
+    const lots = form.lots.value || 3
     // const expected = form.expected.value
     const expected = 3
     const runs = 3
@@ -435,7 +422,13 @@ function do_submit(form) {
         }
         tuple_cnt.push(l)
     }
-    const cards = cal(persons, lots, expected, runs)
+    tuples = []
+    a = []
+    for (let i = 0; i < lots; ++i) {
+        a.push(0)
+    }
+    dfs(0, lots)
+    const cards = cal(lots, expected, runs)
     display_cards(cards)
     return false;
 }
@@ -446,7 +439,7 @@ function do_submit(form) {
     <form onsubmit="return do_submit(this)">
         <div><span>总人数</span><input type="number" name="persons"></div>
         <!-- <div><span>做几轮：</span><input type="number" name="runs"></div> -->
-        <!-- div><span>一轮开几个数：</span><input type="number" name="lots"></div -->
+        <div><span>一轮开几个数：</span><input type="number" name="lots"></div>
         <!-- <div><span>期望中奖人数：</span><input type="number" name="expected"></div> -->
         <div><span>数字上限</span><input type="number" name="bound"></div>
         <input type="submit" id="submit">
