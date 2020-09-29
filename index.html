@@ -111,14 +111,15 @@ function gen_rnd_card_fixed(card, l) {
             }
         }
     }
-
-    shuffle(q)
     if (q.length < 9) {
         console.log(q)
     }
     for (let i = 0; i < 3; ++i) {
         for (let j = 0; j < 3; ++j) {
             card[i][j] = q[i*3+j];
+            if (!card[i][j]) {
+                console.log(card, l, q)
+            }
         }
     }
 }
@@ -447,8 +448,16 @@ function do_submit(form) {
     dfs(0, lots)
     const cards = cal(lots, expected, runs)
     display_cards(cards)
+    console.log(cards)
     return false;
 }
+
+// function check(cards) {
+//     for (const card of cards) {
+//         if (card.length < 3) 
+//     }
+//     return true
+// }
 </script>
 </head>  
   
